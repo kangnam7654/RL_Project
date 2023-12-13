@@ -2,6 +2,7 @@ import pygame
 import time
 import random
 
+
 class Colors:
     white = (255, 255, 255)
     black = (0, 0, 0)
@@ -9,43 +10,51 @@ class Colors:
     green = (0, 255, 0)
     blue = (50, 153, 213)
 
+
 class BaseGameObject:
     def __init__(self) -> None:
         self.color = Colors
         self.size = None
-    
+
     def set_color(self, color: tuple):
         self.color = color
 
     def set_size(self, size: int):
         self.size = size
-        
+
+
 class Snake(BaseGameObject):
-    def __init__(self, color=(0, 0, 0), size=10, speed=15):
+    def __init__(self, color=None, size=None, speed=None):
         super().__init__()
         self.color = color
         self.size = size
         self.speed = speed
         self.initial_length = 1
+        self.length = self.initial_length
         self.head = []
         self.body = []
 
     def set_speed(self, speed):
         self.speed = speed
 
-class Food(BaseGameObject):
-    def __init__(self):
-        self.color = 
+    def set_head(self, x, y):
+        self.head = [x, y]
 
-class Colors:
-    white = (255, 255, 255)
-    black = (0, 0, 0)
-    red = (213, 50, 80)
-    green = (0, 255, 0)
-    blue = (50, 153, 213)
+class Food(BaseGameObject):
+    def __init__(self, color=None, size=None):
+        super().__init__()
+        self.color = color
+        self.size = size
+        self.x = None
+        self.y = None
+
+    def sample(self, height, width):
+        pass
+
 
 class SnakeGame:
     def __init__(self) -> None:
+        # Module On
         pygame.init()
 
         # 색상 정의
@@ -60,7 +69,8 @@ class SnakeGame:
 
         self.clock = pygame.time.Clock()
 
-        self.snake = Snake()
+        self.snake = Snake(color=self.color.black, size=10, speed=15)
+        self.food = Food()
         self.font_style = pygame.font.SysFont(None, 50)
         self.game_over = False
         self.game_close = False
@@ -106,16 +116,16 @@ class SnakeGame:
                     self.game_over = True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
-                        x1_change = -self.snake_block
+                        x1_change = -self.snake.size
                         y1_change = 0
                     elif event.key == pygame.K_RIGHT:
-                        x1_change = self.snake_block
+                        x1_change = self.snake.size
                         y1_change = 0
                     elif event.key == pygame.K_UP:
-                        y1_change = -self.snake_block
+                        y1_change = -self.snake.size
                         x1_change = 0
                     elif event.key == pygame.K_DOWN:
-                        y1_change = self.snake_block
+                        y1_change = self.snake.size
                         x1_change = 0
 
             if x1 >= self.width or x1 < 0 or y1 >= self.height or y1 < 0:
@@ -127,13 +137,11 @@ class SnakeGame:
             pygame.draw.rect(
                 self.game_display,
                 self.color.green,
-                [foodx, foody, self.snake_block, self.snake_block],
+                [foodx, foody, self.snake.size, self.snake.size],
             )
-            snake_head = []
-            snake_head.append(x1)
-            snake_head.append(y1)
-            self.snake.snake_body.append(snake_head)
-            if len(self.snake.snake_body) > self.snake.initial_length:
+            snake_head = [x1, y1]
+            self.snake.body.append(snake_head)
+            if len(self.snake.snake_body) > self.snake.length:
                 del self.snake.snake_body[0]
 
             for x in self.snake.snake_body[:-1]:
@@ -152,12 +160,13 @@ class SnakeGame:
                     round(random.randrange(0, self.height - self.snake_block) / 10.0)
                     * 10.0
                 )
-                length_of_snake += 1
+                self.snake.length += 1
 
             self.clock.tick(self.snake.speed)
 
         pygame.quit()
         quit()
+
 
 if __name__ == "__main__":
     pygame.init()
