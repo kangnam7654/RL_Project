@@ -127,7 +127,7 @@ class SnakeGame:
 
     def frame(self, action=None):
         terminal = False
-        reward = +1.0
+        reward = 0.0
         self.game_display.fill(self.color.white)
         self.food_gen()
 
@@ -152,12 +152,12 @@ class SnakeGame:
 
         if self.hit_wall() or self.snake.head in self.snake.body[:-1]:
             terminal = True
-            reward = -100.0
+            reward = -1.0
 
         self.snake_state()
         if self.snake.x == self.food.x and self.snake.y == self.food.y:
             self.snake.length += 1
-            reward = 100.0
+            reward = 1.0
             self.food.randomize_coordinate()
 
         if terminal:

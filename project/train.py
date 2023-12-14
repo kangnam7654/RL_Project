@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument(
         "--optimizer", type=str, choices=["sgd", "adam"], default="adam"
     )
-    parser.add_argument("--lr", type=float, default=1e-6)
+    parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--initial_epsilon", type=float, default=0.1)
     parser.add_argument("--final_epsilon", type=float, default=1e-4)
@@ -35,7 +35,7 @@ def get_args():
         help="Number of epoches between testing phases",
     )
     parser.add_argument("--saved_path", type=str, default="trained_models")
-
+    parser.add_argument("--ckpt", type=str, default=None)
     args = parser.parse_args()
     return args
 
@@ -48,9 +48,16 @@ def pre_processing(image, device, width=256, height=256):
 
 
 def main(args):
-    # device = "mps" if torch.backends.mps.is_available() else "cpu"
-    device = "cuda"
+    if torch.backends.mps.is_available():
+        device = "mps" 
+    elif torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
     model = QNet().to(device)
+    if args.ckpt is not None:
+        ckpt = torch.load(args.ckpt)
+        model.load_state_dict(ckpt)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     criterion = nn.MSELoss()
@@ -141,8 +148,8 @@ def main(args):
         if (iteration + 1) % 50000 == 0:
             if not Path(args.saved_path).is_dir():
                 Path(args.saved_path).mkdir(parents=True, exist_ok=True)
-            torch.save(model, "{}/snake{}".format(args.saved_path, iteration + 1))
-    torch.save(model, "{}/snake".format(args.saved_path))
+            torch.save(model.state_dict(), "{}/snake{}.pt".format(args.saved_path, iteration + 1))
+    torch.save(model.state_dict(), "{}/snake.pt".format(args.saved_path))
 
 
 if __name__ == "__main__":
