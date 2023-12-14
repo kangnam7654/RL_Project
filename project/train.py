@@ -1,3 +1,4 @@
+from pathlib import Path
 import argparse
 import torch
 import torch.nn as nn
@@ -17,7 +18,7 @@ def get_args():
         help="The common width and height for all images",
     )
     parser.add_argument(
-        "--batch_size", type=int, default=8, help="The number of images per batch"
+        "--batch_size", type=int, default=32, help="The number of images per batch"
     )
     parser.add_argument(
         "--optimizer", type=str, choices=["sgd", "adam"], default="adam"
@@ -30,7 +31,7 @@ def get_args():
     parser.add_argument(
         "--replay_memory_size",
         type=int,
-        default=10000,
+        default=5000,
         help="Number of epoches between testing phases",
     )
     parser.add_argument("--saved_path", type=str, default="trained_models")
@@ -47,8 +48,8 @@ def pre_processing(image, device, width=256, height=256):
 
 
 def main(args):
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
-    device = "cpu"
+    # device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = "cuda"
     model = QNet().to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -72,7 +73,7 @@ def main(args):
         random_action = np.random.rand() <= epsilon
 
         if random_action:
-            action = torch.tensor((np.random.randint(0, 3)))
+            action = torch.tensor((np.random.randint(0, 4)))
             print("RANDOM ACTION!!!")
         else:
             action = torch.argmax(prediction)
@@ -128,12 +129,20 @@ def main(args):
         iteration += 1
         print(
             "Iteration: {}/{}, Action: {}, Loss: {}, Epsilon {}, Reward: {}, Q-value: {}".format(
-                iteration, args.num_iters, action, loss, epsilon, reward, torch.max(prediction)
+                iteration,
+                args.num_iters,
+                action,
+                loss,
+                epsilon,
+                reward,
+                torch.max(prediction),
             )
         )
-        if (iter+1) % 100000 == 0:
-            torch.save(model, "{}/flappy_bird_{}".format(args.saved_path, iter+1))
-    torch.save(model, "{}/flappy_bird".format(args.saved_path))
+        if (iteration + 1) % 50000 == 0:
+            if not Path(args.saved_path).is_dir():
+                Path(args.saved_path).mkdir(parents=True, exist_ok=True)
+            torch.save(model, "{}/snake{}".format(args.saved_path, iteration + 1))
+    torch.save(model, "{}/snake".format(args.saved_path))
 
 
 if __name__ == "__main__":

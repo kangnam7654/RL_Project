@@ -61,17 +61,18 @@ class Food(BaseGameObject):
 
 
 class SnakeGame:
+    pygame.init()
+    game_display = pygame.display.set_mode((320, 240))
+
     def __init__(self) -> None:
         # Module On
-        pygame.init()
 
         # 색상 정의
         self.color = Colors
 
         # 창 크기 설정
-        self.fps = 30
-        self.width, self.height = 120, 80
-        self.game_display = pygame.display.set_mode((self.width, self.height))
+        self.fps = 120
+        self.width, self.height = 320, 240
 
         self.snake_direction = (0, 0)
         # 타이틀 설정
@@ -126,7 +127,7 @@ class SnakeGame:
 
     def frame(self, action=None):
         terminal = False
-        reward = 0.0
+        reward = +1.0
         self.game_display.fill(self.color.white)
         self.food_gen()
 
@@ -151,12 +152,12 @@ class SnakeGame:
 
         if self.hit_wall() or self.snake.head in self.snake.body[:-1]:
             terminal = True
-            reward = -1.0
+            reward = -100.0
 
         self.snake_state()
         if self.snake.x == self.food.x and self.snake.y == self.food.y:
             self.snake.length += 1
-            reward = 1.0
+            reward = 100.0
             self.food.randomize_coordinate()
 
         if terminal:
